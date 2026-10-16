@@ -9,24 +9,37 @@ public class FollowWP : MonoBehaviour
 
     public float speed = 10.0f;
     public float rotSpeed = 10.0f;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public float lookAhead = 10.0f;
+
+    GameObject tracker;
     void Start()
     {
-        
+        tracker = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+        DestroyImmediate(tracker.GetComponent<Collider>());
+        tracker.GetComponent<MeshRenderer>().enabled = false;
+        tracker.transform.position = this.transform.position;
+        tracker.transform.rotation = this.transform.rotation;
     }
 
-    // Update is called once per frame
-    void Update()
+    void ProgressTracker()
     {
-        if (Vector3.Distance(this.transform.position, waipoints[currentWP].transform.position) < 3)
+        if (Vector3.Distance(tracker.transform.position, this.transform.position) > lookAhead) return;
+
+        if (Vector3.Distance(tracker.transform.position, waipoints[currentWP].transform.position) < 3)
             currentWP++;
 
         if (currentWP >= waipoints.Length)
             currentWP = 0;
 
-       // this.transform.LookAt(waipoints[currentWP].transform);
+        tracker.transform.LookAt(waipoints[currentWP].transform);
+        tracker.transform.Translate(0, 0, (speed + 20) * Time.deltaTime);
+    }
+    // Update is called once per frame
+    void Update()
+    {
+       ProgressTracker(); 
 
-        Quaternion lookatWP = Quaternion.LookRotation(waipoints[currentWP].transform.position - this.transform.position);
+       Quaternion lookatWP = Quaternion.LookRotation(tracker.transform.position - this.transform.position);
 
         this.transform.rotation = Quaternion.Slerp(transform.rotation, lookatWP, rotSpeed * Time.deltaTime);
         this.transform.Translate(0,0,speed * Time.deltaTime);
